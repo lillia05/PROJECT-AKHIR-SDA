@@ -106,3 +106,91 @@ class Aplikasi(tk.Tk):
         self.tree.heading("Isi", text="Isi")
         self.tree.heading("Tanggal", text="Tanggal", anchor=tk.CENTER)
         self.tree.pack(expand=True, fill='both', pady=10, padx=10)
+
+        self.frame = ttk.Frame(self)
+        self.frame.pack(fill='x')
+
+        self.tombol_muat = ttk.Button(self.frame, text="Muat", command=self.muat_catatan)
+        self.tombol_muat.pack(side='left', padx=5)
+
+        self.tombol_simpan = ttk.Button(self.frame, text="Simpan", command=self.simpan_catatan)
+        self.tombol_simpan.pack(side='left', padx=5)
+
+        self.tombol_tambah = ttk.Button(self.frame, text="Tambah", command=self.tambah_catatan)
+        self.tombol_tambah.pack(side='left', padx=5)
+
+        self.tombol_perbarui = ttk.Button(self.frame, text="Perbarui", command=self.input_perbarui_catatan)
+        self.tombol_perbarui.pack(side='left', padx=5)
+
+        self.tombol_hapus = ttk.Button(self.frame, text="Hapus", command=self.hapus_catatan)
+        self.tombol_hapus.pack(side='left', padx=5)
+
+        self.tombol_cari = ttk.Button(self.frame, text="Cari", command=self.cari_catatan)
+        self.tombol_cari.pack(side='left', padx=5)
+
+        self.tombol_urutkan = ttk.Button(self.frame, text="Urutkan", command=self.urutkan_catatan)
+        self.tombol_urutkan.pack(side='left', padx=5)
+
+        self.tombol_pulihkan = ttk.Button(self.frame, text="Pulihkan", command=self.pulihkan_catatan)
+        self.tombol_pulihkan.pack(side='left', padx=5)
+
+    def muat_catatan(self):
+        filename = filedialog.askopenfilename(filetypes=[("File CSV", "*.csv")])
+        if filename:
+            self.manajemen_catatan.muat_catatan(filename)
+            self.perbarui_tree()
+            messagebox.showinfo("Sukses", "Catatan berhasil dimuat!")
+
+    def simpan_catatan(self):
+        filename = filedialog.asksaveasfilename(filetypes=[("File CSV", "*.csv")])
+        if filename:
+            self.manajemen_catatan.simpan_catatan(filename)
+            messagebox.showinfo("Sukses", "Catatan berhasil disimpan!")
+
+    def tambah_catatan(self):
+        self.edit_catatan()
+
+    def input_perbarui_catatan(self):
+        item_terpilih = self.tree.selection()
+        if item_terpilih:
+            id_catatan = self.tree.item(item_terpilih[0])['values'][0]
+            catatan = next((n for n in self.manajemen_catatan.catatan if n.id_catatan == id_catatan), None)
+            if catatan:
+                self.edit_catatan(catatan, id_catatan)
+
+    def hapus_catatan(self):
+        self.input_hapus_catatan()
+
+    def input_hapus_catatan(self):
+        self.jendela_hapus = tk.Toplevel(self)
+        self.jendela_hapus.title("Hapus Catatan")
+
+        tk.Label(self.jendela_hapus, text="Masukkan ID Catatan yang ingin dihapus:").grid(row=0, column=0, padx=5, pady=5)
+        self.id_hapus = tk.Entry(self.jendela_hapus)
+        self.id_hapus.grid(row=0, column=1, padx=5, pady=5)
+
+        ttk.Button(self.jendela_hapus, text="Hapus", command=self.konfirmasi_hapus_catatan).grid(row=1, column=0, columnspan=2, pady=5)
+
+    def konfirmasi_hapus_catatan(self):
+        id_catatan = self.id_hapus.get()
+        if self.manajemen_catatan.hapus_catatan(id_catatan):
+            self.perbarui_tree()
+            messagebox.showinfo("Sukses", "Catatan berhasil dihapus!")
+        else:
+            messagebox.showerror("Error", "ID Catatan tidak ditemukan!")
+        self.jendela_hapus.destroy()
+
+    def cari_catatan(self):
+        self.jendela_cari = tk.Toplevel(self)
+        self.jendela_cari.title("Cari Catatan")
+
+        tk.Label(self.jendela_cari, text="Cari Berdasarkan:").grid(row=0, column=0, padx=5, pady=5)
+        self.kunci_cari = ttk.Combobox(self.jendela_cari, values=["kategori", "tanggal"])
+        self.kunci_cari.grid(row=0, column=1, padx=5, pady=5)
+        self.kunci_cari.current(0)
+
+        tk.Label(self.jendela_cari, text="Nilai:").grid(row=1, column=0, padx=5, pady=5)
+        self.nilai_cari = tk.Entry(self.jendela_cari)
+        self.nilai_cari.grid(row=1, column=1, padx=5, pady=5)
+
+        ttk.Button(self.jendela_cari, text="Cari", command=self.konfirmasi_cari_catatan).grid(row=2, column=0, columnspan=2, pady=5)
