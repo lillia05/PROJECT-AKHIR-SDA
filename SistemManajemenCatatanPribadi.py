@@ -3,14 +3,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
 class Catatan:
-class ManajemenCatatan:
-
-if __name__ == "__main__":
-import csv
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
-
-class Catatan:
     def _init_(self, id_catatan, kategori, isi, tanggal):
         self.id_catatan = id_catatan
         self.kategori = kategori
@@ -194,3 +186,95 @@ class Aplikasi(tk.Tk):
         self.nilai_cari.grid(row=1, column=1, padx=5, pady=5)
 
         ttk.Button(self.jendela_cari, text="Cari", command=self.konfirmasi_cari_catatan).grid(row=2, column=0, columnspan=2, pady=5)
+
+    def konfirmasi_cari_catatan(self):
+        kunci = self.kunci_cari.get()
+        nilai = self.nilai_cari.get()
+        hasil = self.manajemen_catatan.cari_catatan(kunci, nilai)
+        self.perbarui_tree(hasil)
+        self.jendela_cari.destroy()
+
+    def urutkan_catatan(self):
+        self.jendela_urutkan = tk.Toplevel(self)
+        self.jendela_urutkan.title("Urutkan Catatan")
+
+        tk.Label(self.jendela_urutkan, text="Urutkan Berdasarkan:").grid(row=0, column=0, padx=5, pady=5)
+        self.kunci_urut = ttk.Combobox(self.jendela_urutkan, values=["kategori", "tanggal"])
+        self.kunci_urut.grid(row=0, column=1, padx=5, pady=5)
+        self.kunci_urut.current(0)
+
+        ttk.Button(self.jendela_urutkan, text="Urutkan", command=self.konfirmasi_urutkan_catatan).grid(row=1, column=0, columnspan=2, pady=5)
+
+    def konfirmasi_urutkan_catatan(self):
+        kunci = self.kunci_urut.get()
+        self.manajemen_catatan.urutkan_catatan(kunci)
+        self.perbarui_tree()
+        self.jendela_urutkan.destroy()
+
+    def pulihkan_catatan(self):
+        if self.manajemen_catatan.pulihkan_catatan():
+            self.perbarui_tree()
+            messagebox.showinfo("Sukses", "Catatan berhasil dipulihkan!")
+        else:
+            messagebox.showinfo("Info", "Tidak ada catatan yang bisa dipulihkan.")
+
+    def edit_catatan(self, catatan=None, id_catatan=None):
+        self.jendela_edit = tk.Toplevel(self)
+        self.jendela_edit.title("Tambah/Edit Catatan")
+
+        tk.Label(self.jendela_edit, text="ID Catatan:").grid(row=0, column=0, padx=5, pady=5)
+        self.entry_id = tk.Entry(self.jendela_edit)
+        self.entry_id.grid(row=0, column=1, padx=5, pady=5)
+        if id_catatan:
+            self.entry_id.insert(0, id_catatan)
+            self.entry_id.config(state='disabled')
+       
+        tk.Label(self.jendela_edit, text="Kategori:").grid(row=1, column=0, padx=5, pady=5)
+        self.entry_kategori = ttk.Combobox(self.jendela_edit, values=["keseharian", "keuangan", "kesehatan", "pendidikan", "hobi", "lainnya"])
+        self.entry_kategori.grid(row=1, column=1, padx=5, pady=5)
+        if catatan:
+            self.entry_kategori.insert(0, catatan.kategori)
+    
+        tk.Label(self.jendela_edit, text="Isi Catatan:").grid(row=2, column=0, padx=5, pady=5)
+        self.entry_isi = tk.Text(self.jendela_edit, height=10, width=40)
+        self.entry_isi.grid(row=2, column=1, padx=5, pady=5)
+        if catatan:
+            self.entry_isi.insert('1.0', catatan.isi)
+
+        tk.Label(self.jendela_edit, text="Tanggal:").grid(row=3, column=0, padx=5, pady=5)
+        self.entry_tanggal = tk.Entry(self.jendela_edit)
+        self.entry_tanggal.grid(row=3, column=1, padx=5, pady=5)
+        if catatan:
+            self.entry_tanggal.insert(0, catatan.tanggal)
+
+        ttk.Button(self.jendela_edit, text="Simpan", command=lambda: self.konfirmasi_edit_catatan(catatan is not None)).grid(row=4, column=0, columnspan=2, pady=5)
+
+    def konfirmasi_edit_catatan(self, memperbarui):
+        id_catatan = self.entry_id.get()
+        kategori = self.entry_kategori.get()
+        isi = self.entry_isi.get("1.0", tk.END).strip()
+        tanggal = self.entry_tanggal.get()
+
+        if memperbarui:
+            self.manajemen_catatan.perbarui_catatan(id_catatan, kategori, isi, tanggal)
+            messagebox.showinfo("Sukses", "Catatan berhasil diperbarui!")
+        else:
+            catatan = Catatan(id_catatan, kategori, isi, tanggal)
+            self.manajemen_catatan.tambah_catatan(catatan)
+            messagebox.showinfo("Sukses", "Catatan berhasil ditambahkan!")
+
+        self.perbarui_tree()
+        self.jendela_edit.destroy()
+
+    def perbarui_tree(self, data=None):
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        if not data:
+            data = self.manajemen_catatan.catatan
+        for catatan in data:
+            self.tree.insert("", "end", values=(catatan.id_catatan, catatan.kategori, catatan.isi, catatan.tanggal))
+
+if __name__ == "__main__":
+    manajemen_catatan = ManajemenCatatan()
+    app = Aplikasi(manajemen_catatan)
+    app.mainloop()
