@@ -3,14 +3,14 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
 class Catatan:
-    def _init_(self, id_catatan, kategori, isi, tanggal):
+    def __init__(self, id_catatan, kategori, isi, tanggal):
         self.id_catatan = id_catatan
         self.kategori = kategori
         self.isi = isi
         self.tanggal = tanggal
 
 class ManajemenCatatan:
-    def _init_(self):
+    def __init__(self):
         self.catatan = []
         self.stack_dihapus = []
 
@@ -73,8 +73,8 @@ class ManajemenCatatan:
         return False
 
 class Aplikasi(tk.Tk):
-    def _init_(self, manajemen_catatan):
-        super()._init_()
+    def __init__(self, manajemen_catatan):
+        super().__init__()
         self.manajemen_catatan = manajemen_catatan
         self.title("Sistem Manajemen Catatan Pribadi")
         self.geometry("1200x700")
@@ -143,12 +143,24 @@ class Aplikasi(tk.Tk):
         self.edit_catatan()
 
     def input_perbarui_catatan(self):
-        item_terpilih = self.tree.selection()
-        if item_terpilih:
-            id_catatan = self.tree.item(item_terpilih[0])['values'][0]
-            catatan = next((n for n in self.manajemen_catatan.catatan if n.id_catatan == id_catatan), None)
-            if catatan:
-                self.edit_catatan(catatan, id_catatan)
+        self.jendela_perbarui = tk.Toplevel(self)
+        self.jendela_perbarui.title("Perbarui Catatan")
+
+        tk.Label(self.jendela_perbarui, text="Masukkan ID Catatan yang ingin diperbarui:").grid(row=0, column=0, padx=5, pady=5)
+        self.id_perbarui = tk.Entry(self.jendela_perbarui)
+        self.id_perbarui.grid(row=0, column=1, padx=5, pady=5)
+
+        ttk.Button(self.jendela_perbarui, text="Cari", command=self.konfirmasi_perbarui_catatan).grid(row=1, column=0, columnspan=2, pady=5)
+
+    def konfirmasi_perbarui_catatan(self):
+        id_catatan = self.id_perbarui.get()
+        catatan = next((n for n in self.manajemen_catatan.catatan if n.id_catatan == id_catatan), None)
+        if catatan:
+            self.edit_catatan(catatan, id_catatan)
+            self.jendela_perbarui.destroy()
+        else:
+            messagebox.showerror("Error", "ID Catatan tidak ditemukan!")
+            self.jendela_perbarui.destroy()
 
     def hapus_catatan(self):
         self.input_hapus_catatan()
@@ -230,6 +242,7 @@ class Aplikasi(tk.Tk):
             self.entry_id.config(state='disabled')
        
         tk.Label(self.jendela_edit, text="Kategori:").grid(row=1, column=0, padx=5, pady=5)
+        self.entry_kategori = tk.Entry(self.jendela_edit)
         self.entry_kategori = ttk.Combobox(self.jendela_edit, values=["keseharian", "keuangan", "kesehatan", "pendidikan", "hobi", "lainnya"])
         self.entry_kategori.grid(row=1, column=1, padx=5, pady=5)
         if catatan:
